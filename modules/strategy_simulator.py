@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def strategy_simulator(path, strategy, dict_data, t, ret_port, weights_db):
+def strategy_simulator(path, strategy, data_source, t, ret_port, weights_db, **kwargs):
     """
     Calculate portfolio returns using the minRisk strategy.
 
@@ -21,14 +21,14 @@ def strategy_simulator(path, strategy, dict_data, t, ret_port, weights_db):
     """
 
     # Calculate the weights for the specified t value
-    weights = strategy(dict_data, t = t)
+    weights = strategy(data_source, t = t, **kwargs)
 
     # Save a weights database
     weights_db = pd.concat([weights_db, weights], axis=0)
     weights_db.to_parquet(path + "weights_db.parquet")
 
     # Calculate and save portfolio returns
-    prices = dict_data['prices']
+    prices = data_source['prices']
     prices_1 = prices[weights.ticker].loc[prices.index[t - 1:t + 1]]
     returns_1 = np.log(prices_1).diff().tail(1).mean()
     weights_index = weights.weights
