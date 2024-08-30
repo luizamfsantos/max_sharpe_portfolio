@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
 
-from modules.get_retornos_sp import get_retornos_sp
-from modules.initial_weights import get_uniform_noneg
+from simulator.get_retornos_sp import get_retornos_sp
+from simulator.initial_weights import get_uniform_noneg
 
 
 def _sel_stocks(returns, size):
@@ -78,7 +78,7 @@ def strategy_minRisk(data, t, size=30, window_size=500):
     )
 
     opt_weights = pd.DataFrame({
-        'date': [data['prices'].index[t]] * len(result.x),
+        'date': [data['stocks'].index[t]] * len(result.x),
         'ticker': returns_sel.columns,
         'weights': result.x,
     })

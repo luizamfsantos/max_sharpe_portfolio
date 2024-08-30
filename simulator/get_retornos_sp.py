@@ -14,7 +14,7 @@ def get_retornos_sp(data, t, window_size):
         DataFrame: Calculated returns based on the input data.
     """
     sp500 = data['sp']
-    prices = data['prices']
+    prices = data['stocks']
     dates_prices = prices.index
 
     # From days before dates_prices[t], take the greatest
