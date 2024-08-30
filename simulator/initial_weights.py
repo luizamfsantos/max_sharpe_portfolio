@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 def get_uniform_noneg(size):
     """
     Generate initial uniform weights.
@@ -11,9 +12,10 @@ def get_uniform_noneg(size):
     Returns:
         ndarray: Array of initial uniform weights.
     """
-    aux = [random.uniform(0, 2/size) for _ in range(size)]
-    initial_weights = np.array(aux)  # Start with all weights set to 0
-    return initial_weights
+    return np.array(
+        [random.uniform(0, 2/size) for _ in range(size)]
+    )
+
 
 def get_uniform_posneg(size):
     """

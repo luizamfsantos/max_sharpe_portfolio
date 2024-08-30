@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
-import random
+
 from modules.get_retornos_sp import get_retornos_sp
 from modules.initial_weights import get_uniform_noneg
+
 
 def _sel_stocks(returns, size):
     """
@@ -18,9 +19,13 @@ def _sel_stocks(returns, size):
     """
     if (size is None) or (size > len(returns.columns)):
         size = len(returns.columns)
+    # Select the top 'size' stocks based on standard deviation
     stocks_sel = returns.std().sort_values().head(size).index
+
+    # Filter the returns to the top symbols
     returns_sel = returns[stocks_sel]
     return returns_sel
+
 
 def _calculate_risk_stat(weights, returns):
     """
@@ -34,6 +39,7 @@ def _calculate_risk_stat(weights, returns):
         float: Calculated risk statistic.
     """
     return (weights @ returns.cov() @ weights * 252) ** 0.5
+
 
 def strategy_minRisk(data, t, size=30, window_size=500):
     """
@@ -54,7 +60,8 @@ def strategy_minRisk(data, t, size=30, window_size=500):
 
     # Define optimization constraints
     constraints = [
-        {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}  # Sum of weights must equal 1
+        # Sum of weights must equal 1
+        {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}
     ]
 
     # Define bounds for weights (0 <= weight <= 1)
