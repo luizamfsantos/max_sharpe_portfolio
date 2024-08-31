@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
+from typing import Dict
+
+from simulator.strategy_interface import StrategyInterface
 
 from data_market.get_retornos_sp import get_retornos_sp
 from strategy.initial_weights import get_uniform_noneg
@@ -41,46 +44,54 @@ def _calculate_risk_stat(weights, returns):
     return (weights @ returns.cov() @ weights * 252) ** 0.5
 
 
-def strategy_minRisk(data, t, size=30, window_size=500):
-    """
-    Implement a minimum risk strategy.
+class MinRiskStrategy(StrategyInterface):
 
-    Args:
-        data (dict): Data dictionary containing 'sp' and 'prices' DataFrames.
-        t (int): The desired time.
-        size (int, optional): Number of stocks to consider. Defaults to 30.
-        window_size (int, optional): Size of the window for calculations. Defaults to 500.
+    def __init__(self):
+        """
+        Initialize the minimum risk strategy.
+        """
+        pass
 
-    Returns:
-        DataFrame: Optimal weights for the selected stocks.
-    """
-    returns = get_retornos_sp(data, t, window_size)
-    returns_sel = _sel_stocks(returns, size)
-    initial_weights = get_uniform_noneg(size)
+    def calculate_next_weights(self, data: Dict[str, pd.DataFrame], t: int, size=30, window_size=500) -> pd.DataFrame:
+        """
+        Implement a minimum risk strategy.
 
-    # Define optimization constraints
-    constraints = [
-        # Sum of weights must equal 1
-        {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}
-    ]
+        Args:
+            data (dict): Data dictionary containing 'sp' and 'prices' DataFrames.
+            t (int): The desired time.
+            size (int, optional): Number of stocks to consider. Defaults to 30.
+            window_size (int, optional): Size of the window for calculations. Defaults to 500.
 
-    # Define bounds for weights (0 <= weight <= 1)
-    bounds = tuple((0, 1) for _ in range(size))
+        Returns:
+            DataFrame: Optimal weights for the selected stocks.
+        """
+        returns = get_retornos_sp(data, t, window_size)
+        returns_sel = _sel_stocks(returns, size)
+        initial_weights = get_uniform_noneg(size)
 
-    # Perform optimization
-    result = minimize(
-        _calculate_risk_stat,
-        initial_weights,
-        args=(returns_sel,),
-        method='SLSQP',
-        bounds=bounds,
-        constraints=constraints
-    )
+        # Define optimization constraints
+        constraints = [
+            # Sum of weights must equal 1
+            {'type': 'eq', 'fun': lambda x: np.sum(x) - 1}
+        ]
 
-    opt_weights = pd.DataFrame({
-        'date': [data['stocks'].index[t]] * len(result.x),
-        'ticker': returns_sel.columns,
-        'weights': result.x,
-    })
+        # Define bounds for weights (0 <= weight <= 1)
+        bounds = tuple((0, 1) for _ in range(size))
 
-    return opt_weights
+        # Perform optimization
+        result = minimize(
+            _calculate_risk_stat,
+            initial_weights,
+            args=(returns_sel,),
+            method='SLSQP',
+            bounds=bounds,
+            constraints=constraints
+        )
+
+        opt_weights = pd.DataFrame({
+            'date': [data['stocks'].index[t]] * len(result.x),
+            'ticker': returns_sel.columns,
+            'weights': result.x,
+        })
+
+        return opt_weights
