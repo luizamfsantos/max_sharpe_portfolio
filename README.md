@@ -8,7 +8,7 @@ Exemplo de estratégia para a disciplina PO-245.
 - [main.ipynb](main.ipynb): Jupyter notebook com a documentação da sua estratégia, um exemplo de execução e a geração do relatório
 - [data_market](data_market/): módulo provedor de dados
   - [datasets](datasets/): subdiretório com os dados disponibilizados para a estratégia
-- [README.md]: README apresentando o repositório
+- [README.md](README.md): README apresentando o repositório
 - [libs](libs/): bibliotecas externas adicionais
 - [simulator](simulator/): código de apoio para simulação da estratégia
 - [requirements.txt](requirements.txt): bibliotecas dependentes
