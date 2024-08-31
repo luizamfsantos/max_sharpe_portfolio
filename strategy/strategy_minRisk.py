@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
 
-from simulator.get_retornos_sp import get_retornos_sp
-from simulator.initial_weights import get_uniform_noneg
+from data_market.get_retornos_sp import get_retornos_sp
+from strategy.initial_weights import get_uniform_noneg
 
 
 def _sel_stocks(returns, size):
