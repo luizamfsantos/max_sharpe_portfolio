@@ -29,9 +29,9 @@ def calculate_conversion_line(
 
 
 def calculate_baseline(
-    data: pd.DataFrame, 
+    data: pd.DataFrame,
     rolling_periods: int = 26
-    ) -> pd.Series:
+) -> pd.Series:
     """
     Calculate the base line (kijun_sen)
     of the Ichimoku strategy. Using the formula:
@@ -89,9 +89,9 @@ def calculate_leading_span_B(
 
 
 def calculate_lagging_span(
-    data: pd.DataFrame, 
+    data: pd.DataFrame,
     lagging_periods: int = 30
-    ) -> pd.Series:
+) -> pd.Series:
     """ 
     Calculate the lagging span (chikou_span)
     of the Ichimoku strategy.
