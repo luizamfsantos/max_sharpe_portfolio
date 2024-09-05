@@ -24,3 +24,7 @@ def load_data():
     # create a dictionary with data
     dict_data = {'fed_rate': fed_rate_df, 'sp': sp_df, 'stocks': prices_df}
     return dict_data
+
+if __name__ == "__main__":
+    data = load_data()
+    print(data)
