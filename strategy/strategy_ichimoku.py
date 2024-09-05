@@ -145,22 +145,53 @@ class IchimokuStrategy(StrategyInterface):
         """
         ...
 
-    def _buy_stocks():
+    def 
+
+    def _set_market_condition(self, data: pd.DataFrame, index: int):
+        if exists(self.market):
+            if self.market.index == index:
+                return  # already set
+        self.market = MarketCondtion(data, index)
+
+    def _buy_stocks(data: pd.DataFrame, index: int) -> list[str]:
         """ 
         When the close price is above the cloud,
         leading Span A (senkou_span_A) is above 
         the leading span B (senkou_span_B), and
         conversion line (tenkan_sen) moves above
         the base line (kijun_sen), we buy stocks.
+        Returns:
+            list[str]: List of stocks to buy.
         """
-        ...
+        _set_market_condition(data, index)
 
-    def _sell_stocks():
+    def _sell_stocks(data: pd.DataFrame, index: int) -> list[str]:
         """
         When the close price is below the cloud,
         leading Span A (senkou_span_A) is below 
         the leading span B (senkou_span_B), and
         conversion line (tenkan_sen) moves below
         the base line (kijun_sen), we sell stocks.
+        Returns:
+            list[str]: List of stocks to sell.
         """
-        ...
+        _set_market_condition(data, index)
+
+class MarketCondtion():
+
+    def __init__(self, data: pd.DataFrame, index: int):
+        self.data = data.iloc[:index,:] # only look at the data up to the current index
+        self.index = index
+        self.stock_list = self._get_stocks()
+        # TODO: replace the below by calculating for each stock
+        # self.data['baseline'] = calculate_baseline(self.data)
+        # self.data['conversion_line'] = calculate_conversion_line(self.data)
+        # self.data['leading_span_A'] = calculate_leading_span_A(self.data)
+        # self.data['leading_span_B'] = calculate_leading_span_B(self.data)
+        # self.cloud = calculate_cloud(self.data)
+
+    def _get_stocks(self) -> list[str]:
+        return [col for col in self.data.columns if col not in ['Date']]
+
+    def _get_stock_data(self, stock: str) -> pd.DataFrame:
+        return self.data[stock]
