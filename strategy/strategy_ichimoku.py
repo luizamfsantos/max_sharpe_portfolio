@@ -140,15 +140,10 @@ def calculate_cloud(
 class IchimokuStrategy(StrategyInterface):
 
     def __init__(self):
-        """
-        Initialize the Ichimoku strategy.
-        """
-        ...
-
-    def 
+        self.market = None
 
     def _set_market_condition(self, data: pd.DataFrame, index: int):
-        if exists(self.market):
+        if self.market is not None:
             if self.market.index == index:
                 return  # already set
         self.market = MarketCondtion(data, index)
@@ -164,6 +159,7 @@ class IchimokuStrategy(StrategyInterface):
             list[str]: List of stocks to buy.
         """
         _set_market_condition(data, index)
+        return self.market.cloud[self.market.cloud == 1].index.tolist()
 
     def _sell_stocks(data: pd.DataFrame, index: int) -> list[str]:
         """
@@ -176,6 +172,16 @@ class IchimokuStrategy(StrategyInterface):
             list[str]: List of stocks to sell.
         """
         _set_market_condition(data, index)
+        return self.market.cloud[self.market.cloud == -1].index.tolist()
+
+    def calculate_next_weights(self, data: pd.DataFrame, t: int, size=30, window_size=500) -> pd.DataFrame:
+        """
+        Implement the Ichimoku strategy.
+        """
+        stocks_buy = _buy_stocks(data, t) # create a portfolio of stocks to buy
+
+        # TODO: balance the portfolio 
+        return stocks
 
 class MarketCondtion():
 
@@ -183,15 +189,18 @@ class MarketCondtion():
         self.data = data.iloc[:index,:] # only look at the data up to the current index
         self.index = index
         self.stock_list = self._get_stocks()
-        # TODO: replace the below by calculating for each stock
-        # self.data['baseline'] = calculate_baseline(self.data)
-        # self.data['conversion_line'] = calculate_conversion_line(self.data)
-        # self.data['leading_span_A'] = calculate_leading_span_A(self.data)
-        # self.data['leading_span_B'] = calculate_leading_span_B(self.data)
-        # self.cloud = calculate_cloud(self.data)
+        self.cloud = {stock: self._calculate_stock_cloud_condition(stock) for stock in self.stock_list}
 
     def _get_stocks(self) -> list[str]:
         return [col for col in self.data.columns if col not in ['Date']]
 
     def _get_stock_data(self, stock: str) -> pd.DataFrame:
         return self.data[stock]
+
+    def _calculate_stock_cloud_condition(self, stock: str):
+        stock_data = self._get_stock_data(stock)
+        baseline = calculate_baseline(stock_data)
+        conversion_line = calculate_conversion_line(stock_data)
+        leading_span_A = calculate_leading_span_A(stock_data)
+        leading_span_B = calculate_leading_span_B(stock_data)
+        return calculate_cloud(stock_data)
