@@ -146,7 +146,7 @@ class IchimokuStrategy(StrategyInterface):
         if self.market is not None:
             if self.market.index == index:
                 return  # already set
-        self.market = MarketCondtion(data, index)
+        self.market = MarketCondition(data, index)
 
     def _buy_stocks(data: pd.DataFrame, index: int) -> list[str]:
         """ 
@@ -183,7 +183,7 @@ class IchimokuStrategy(StrategyInterface):
         # TODO: balance the portfolio 
         return stocks
 
-class MarketCondtion():
+class MarketCondition():
 
     def __init__(self, data: pd.DataFrame, index: int):
         self.data = data.iloc[:index,:] # only look at the data up to the current index
