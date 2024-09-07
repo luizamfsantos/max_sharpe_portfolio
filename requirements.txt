@@ -1,3 +1,4 @@
 pandas
 pyarrow
 ./libs/quantstats-0.0.63.tar.gz
+PyPortfolioOpt
