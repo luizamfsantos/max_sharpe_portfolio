@@ -1,43 +1,35 @@
-# Template de Projetos
+# Ichimoku Cloud Strategy
 
-Exemplo de estratégia para a disciplina PO-245.
+## Repository organization
 
-## Organização do repositório
+- [README.md](README.md): Introduces the repository
+- [strategy](strategy/): strategy module
+- [main.ipynb](main.ipynb): Jupyter notebook with documentation of Ichimoku Cloud strategy, execution of the strategy and report generation
+- [data_market](data_market/): data provider module
+- [datasets](datasets/): subdirectory with the data made available for the strategy
+- [libs](libs/): additional external libraries
+- [simulator](simulator/): support code for simulating the strategy
+- [requirements.txt](requirements.txt): dependent libraries
 
-- [README.md](README.md): Apresenta o repositório
-- [strategy](strategy/): estratégia escrita pelo aluno
-- [main.ipynb](main.ipynb): Jupyter notebook com a documentação da sua estratégia, um exemplo de execução e a geração do relatório
-- [data_market](data_market/): módulo provedor de dados
-  - [datasets](datasets/): subdiretório com os dados disponibilizados para a estratégia
-- [libs](libs/): bibliotecas externas adicionais
-- [simulator](simulator/): código de apoio para simulação da estratégia
-- [requirements.txt](requirements.txt): bibliotecas dependentes
+## How to run
 
-## Primeiros passos
-
-Recomendo primeiro criar um ambiente virtual (`venv`) utilizando `requirements.txt`. Este ambiente irá utilizar nossa versão corrigida do [QuantStat](#quantstat). Também recomendo utilizar vscode ou outra plataforma de desenvolvimento para facilitar o trabalho.
-
-O principal arquivo é o Notebook `main.ipynb`, que deve conter:
-
-- uma breve explicação da estratégia;
-- a execução da estratégia;
-- relatório para comparar a estratégia com um benchmark.
-
-Note que a estratégia não é implementada no notebook. Apenas a invocamos no notebook para mantermos o código organizado.
-A estratégia é contida na pasta `strategy` bem como todas as funções auxiliares para sua execução.
-
-Rode o notebook por completo para entender a organização da solução.
-
-Antes de rodar qualquer estratégia, preciamos carregar os dados. Prefira concentrar o tratamento de dados de maneira isolada da estratégia. Aqui armazenamos os dados e funções na pasta `data_market`.
-
-Por fim, o notebook irá abrir uma janela perguntando onde salvar o relatório. Salve em uma pasta e abra em um browser. Você pode comparar sua estratégia com qualquer ticker compatível com o Yahoo Finance.
-
-## QuantStat
-
-Nosso template utiliza uma versão proprietári da biblioteca QuantStat disponível em https://github.com/fico-ita/quantstats/releases/tag/v0.0.63.
-
-Este repo está configurado para utilizar a versão corrigida. Contudo, caso queira instalar manualmente, baixe o arquivo `.tar.gz` e instale via `pip`:
-
+1. Use virtual environment (more help: [The Hitchhiker's Guide to Python](https://docs.python-guide.org/dev/virtualenvs/))
 ```bash
-pip install quantstats-0.0.63.tar.gz
+pipenv install -r requirements.txt
+pipenv shell
 ```
+- Important because the QuantStat library is a modified version
+2. Open `main.ipynb` in Jupyter Notebook
+The `main.ipynb` notebook contains:
+
+- a brief explanation of the strategy;
+- the execution of the strategy;
+- a report to compare the strategy with a benchmark.
+
+Note that the strategy is not implemented in the notebook. We only invoke it in the notebook to keep the code organized.
+
+The strategy is contained in the `strategy` folder, as well as all the auxiliary functions for its execution.
+
+Before running any strategy, we need to load the data. It is preferable to concentrate the data processing separately from the strategy. Here we store the data and functions in the `data_market` folder.
+
+Finally, the notebook will open a window asking where to save the report. Save it in a folder and open it in a browser. You can compare your strategy with any ticker compatible with Yahoo Finance.
