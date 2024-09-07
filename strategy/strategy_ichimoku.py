@@ -133,7 +133,8 @@ def calculate_cloud(
         data['leading_span_A'] = calculate_leading_span_A(
             data, baseline_rolling_periods, conversion_rolling_periods, future_periods)
     if 'leading_span_B' not in data.columns:
-        data['leading_span_B'] = calculate_leading_span_B(data, conversion_rolling_periods,future_periods)
+        data['leading_span_B'] = calculate_leading_span_B(
+            data, conversion_rolling_periods, future_periods)
 
     # Define conditions
     price_above = (data['Close'] > data['leading_span_A']) & (
@@ -192,15 +193,19 @@ class IchimokuStrategy(StrategyInterface):
         """
         stocks_to_buy = [
             ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
+        if not stocks_to_buy:
+            return # nothing to buy
         if self.current_weights is None:
+            # First time buying stocks equally buy all stocks from the buy list
             self.current_weights = pd.DataFrame({
                 'ticker': stocks_to_buy,
                 'weights': 1/len(stocks_to_buy),
             })
             return
         else:
+            # Check if we have available portfolio (from what we sold) to buy more stocks
             available_portfolio = 1 - self.current_weights['weights'].sum()
-        if available_portfolio and stocks_to_buy:
+        if available_portfolio:
             added_weights_per_stock = available_portfolio / len(stocks_to_buy)
             # Update weights for existing stocks and add new ones
             for ticker in stocks_to_buy:
@@ -222,7 +227,7 @@ class IchimokuStrategy(StrategyInterface):
         the base line (kijun_sen), we sell stocks.
         """
         if self.current_weights is None:
-            return
+            return  # nothing to sell
         stocks_to_sell = [
             ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == -1]
         if sum(self.current_weights['ticker'].isin(stocks_to_sell)):
@@ -239,7 +244,9 @@ class IchimokuStrategy(StrategyInterface):
         data (dict): Data dictionary containing 'sp', 
             'prices' and 'fed_rate' DataFrames.
         t (int): Current time index.
-
+        Returns:
+        pd.DataFrame: DataFrame containing the weights
+            of each stock in the portfolio.
         """
         stocks_df = data['stocks']
         index_considered = stocks_df.index[:t]  # returns list of dates up to t
@@ -250,9 +257,9 @@ class IchimokuStrategy(StrategyInterface):
         self._set_market_condition(complete_prices_df, index_considered)
         self._sell_stocks()
         self._buy_stocks()
-        opt_weights = self.current_weights.copy()
-        opt_weights['date'] = self.market.index
-        return opt_weights
+        portfolio_weights = self.current_weights.copy()
+        portfolio_weights['date'] = self.market.index
+        return portfolio_weights
 
 
 class MarketCondition():
@@ -274,9 +281,4 @@ class MarketCondition():
 
     def _calculate_stock_cloud_condition(self, stock: str):
         stock_data = self._get_stock_data(stock)
-        baseline = calculate_baseline(stock_data)
-        conversion_line = calculate_conversion_line(stock_data)
-        leading_span_A = calculate_leading_span_A(stock_data)
-        leading_span_B = calculate_leading_span_B(stock_data)
-        cloud =  calculate_cloud(stock_data)
-        return cloud.iloc[-1]
+        return calculate_cloud(stock_data).iloc[-1]
