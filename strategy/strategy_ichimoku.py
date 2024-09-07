@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 from simulator.strategy_interface import StrategyInterface
-from data_market.get_retornos_sp import get_retornos_sp
 from strategy.initial_weights import get_uniform_noneg
 
 
@@ -159,9 +158,17 @@ def calculate_cloud(
 
 
 class IchimokuStrategy(StrategyInterface):
+    """
+    Ichimoku Cloud strategy finds the best time to buy and
+    sell a stock. It does not optimize the portfolio weights.
+    So we'll implement a naive strategy that allocates equal
+    weight to all stocks that are in the buy list and 0 weight
+    to all stocks that are in the sell list.
+     """
 
     def __init__(self):
         self.market = None
+        self.current_weights = None
 
     def _set_market_condition(self, data: pd.DataFrame, index: int):
         if self.market is not None:
@@ -195,14 +202,18 @@ class IchimokuStrategy(StrategyInterface):
         _set_market_condition(data, index)
         return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
 
-    def calculate_next_weights(self, data: pd.DataFrame, t: int, size=30, window_size=500) -> pd.DataFrame:
+    def calculate_next_weights(self, data: dict[str, pd.DataFrame], t: int) -> pd.DataFrame:
         """
         Implement the Ichimoku strategy.
+        data (dict): Data dictionary containing 'sp', 'prices' and 'fed_rate' DataFrames.
+        t (int): Current time index.
+
         """
+        stocks_df = data['stocks']
         stocks_buy = _buy_stocks(
-            data, t)
+            stocks_df, t)
         stocks_sell = _sell_stocks(
-            data, t)
+            stocks_df, t)
 
         # TODO: get previous weights, if ticker is in stocks_sell, set weight to 0
         # if ticker is in stocks_buy, set weight to 1/len(stocks_buy)
