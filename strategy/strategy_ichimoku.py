@@ -278,4 +278,5 @@ class MarketCondition():
         conversion_line = calculate_conversion_line(stock_data)
         leading_span_A = calculate_leading_span_A(stock_data)
         leading_span_B = calculate_leading_span_B(stock_data)
-        return calculate_cloud(stock_data)
+        cloud =  calculate_cloud(stock_data)
+        return cloud.iloc[-1]
