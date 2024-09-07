@@ -202,18 +202,21 @@ class IchimokuStrategy(StrategyInterface):
         _set_market_condition(data, index)
         return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
 
-    def calculate_next_weights(self, data: dict[str, pd.DataFrame], t: int) -> pd.DataFrame:
+    def calculate_next_weights(self, data: dict[str, pd.DataFrame], t: str) -> pd.DataFrame:
         """
         Implement the Ichimoku strategy.
         data (dict): Data dictionary containing 'sp', 'prices' and 'fed_rate' DataFrames.
-        t (int): Current time index.
+        t (int): Current time index. E.g. 2020-01-01
 
         """
         stocks_df = data['stocks']
+        complete_prices_df = data.get('prices_complete')
+        if not complete_prices_df:
+            raise ValueError("Data must contain open, high, low, close columns in order to calculate Ichimoku Cloud")
         stocks_buy = _buy_stocks(
-            stocks_df, t)
+            complete_prices_df, t)
         stocks_sell = _sell_stocks(
-            stocks_df, t)
+            complete_prices_df, t)
 
         # TODO: get previous weights, if ticker is in stocks_sell, set weight to 0
         # if ticker is in stocks_buy, set weight to 1/len(stocks_buy)
@@ -234,7 +237,7 @@ class IchimokuStrategy(StrategyInterface):
 
 class MarketCondition():
 
-    def __init__(self, data: pd.DataFrame, index: int):
+    def __init__(self, data: pd.DataFrame, index: str):
         # only look at the data up to the current index
         self.data = data.iloc[index-52:index, :]
         self.index = index

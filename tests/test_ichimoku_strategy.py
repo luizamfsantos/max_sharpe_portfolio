@@ -11,5 +11,7 @@ class IchimokuTest(TestCase):
         cls.data = {'stocks': pd.read_csv(test_data_path)}
 
     def test_calculate_conversion_line(self):
-        data = self.data['stocks']
-        print(data)
+        data = self.data['stocks'].copy()
+        stock_data = data['AAPL']
+        stock_data['conversion_line'] = calculate_conversion_line(stock_data)
+        print(stock_data)
