@@ -180,7 +180,7 @@ class IchimokuStrategy(StrategyInterface):
             list[str]: List of stocks to buy.
         """
         _set_market_condition(data, index)
-        return self.market.cloud[self.market.cloud == 1].index.tolist()
+        return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
 
     def _sell_stocks(data: pd.DataFrame, index: int) -> list[str]:
         """
@@ -193,24 +193,39 @@ class IchimokuStrategy(StrategyInterface):
             list[str]: List of stocks to sell.
         """
         _set_market_condition(data, index)
-        return self.market.cloud[self.market.cloud == -1].index.tolist()
+        return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
 
     def calculate_next_weights(self, data: pd.DataFrame, t: int, size=30, window_size=500) -> pd.DataFrame:
         """
         Implement the Ichimoku strategy.
         """
         stocks_buy = _buy_stocks(
-            data, t)  # create a portfolio of stocks to buy
+            data, t)
+        stocks_sell = _sell_stocks(
+            data, t)
+
+        # TODO: get previous weights, if ticker is in stocks_sell, set weight to 0
+        # if ticker is in stocks_buy, set weight to 1/len(stocks_buy)
+        # if ticker is in neither, keep the previous weight
+        # if no previous weight, set weight to 0
+        # normalize the weights to sum to 1
 
         # TODO: balance the portfolio
-        return stocks
+        # Example:
+        # opt_weights = pd.DataFrame({
+        #     'date': [data['stocks'].index[t]] * len(result.x),
+        #     'ticker': returns_sel.columns,
+        #     'weights': result.x,
+        # })
+
+        # return opt_weights
 
 
 class MarketCondition():
 
     def __init__(self, data: pd.DataFrame, index: int):
         # only look at the data up to the current index
-        self.data = data.iloc[:index, :]
+        self.data = data.iloc[index-52:index, :]
         self.index = index
         self.stock_list = self._get_stocks()
         self.cloud = {stock: self._calculate_stock_cloud_condition(
