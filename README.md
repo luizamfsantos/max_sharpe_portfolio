@@ -33,3 +33,7 @@ The strategy is contained in the `strategy` folder, as well as all the auxiliary
 Before running any strategy, we need to load the data. It is preferable to concentrate the data processing separately from the strategy. Here we store the data and functions in the `data_market` folder.
 
 Finally, the notebook will open a window asking where to save the report. Save it in a folder and open it in a browser. You can compare your strategy with any ticker compatible with Yahoo Finance.
+
+## Additional Data Used
+
+Kaggle Brazilian Stock Market dataset: https://www.kaggle.com/datasets/andrewmvd/brazilian-stock-market
