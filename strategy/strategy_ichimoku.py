@@ -119,34 +119,37 @@ def calculate_cloud(
         conversion_rolling_periods: int | None = None,
         future_periods: int | None = None) -> pd.Series:
     """
-    Calculate whether the prices are above, below, or within the cloud.
-    Returns:
-    +1 if the close price is above the cloud (trend up)
-    -1 if the close price is below the cloud (trend down)
-    0 if the close price is within the cloud (flat)
+    Calculate Ichimoku cloud signal:
+        +1 trend up
+        -1 trend down
+        0 flat
+    Based on 3 conditions:
+        1. Price above/below/within cloud
+        2. Span A above/below Span B
+        3. Conversion line above/below baseline
     """
     # Calculate leading spans if not present
-    for span, func in [('A', calculate_leading_span_A), ('B', calculate_leading_span_B)]:
-        col = f'leading_span_{span}'
-        if col not in data.columns:
-            data[col] = func(data, baseline_rolling_periods,
-                             conversion_rolling_periods, future_periods)
+    if 'leading_span_A' not in data.columns:
+        data['leading_span_A'] = calculate_leading_span_A(
+            data, baseline_rolling_periods, conversion_rolling_periods, future_periods)
+    if 'leading_span_B' not in data.columns:
+        data['leading_span_B'] = calculate_leading_span_B(data, conversion_rolling_periods,future_periods)
 
     # Define conditions
-    price_above = (data.close > data.leading_span_A) & (
-        data.close > data.leading_span_B)
-    price_below = (data.close < data.leading_span_A) & (
-        data.close < data.leading_span_B)
-    span_A_above = data.leading_span_A > data.leading_span_B
-    conversion_above = data.conversion_line > data.baseline
+    price_above = (data['Close'] > data['leading_span_A']) & (
+        data['Close'] > data['leading_span_B'])
+    price_below = (data['Close'] < data['leading_span_A']) & (
+        data['Close'] < data['leading_span_B'])
+    span_A_above = data['leading_span_A'] > data['leading_span_B']
+    span_A_below = data['leading_span_A'] < data['leading_span_B']
+    conversion_above = data['conversion_line'] > data['baseline']
+    conversion_below = data['conversion_line'] < data['baseline']
 
     # Calculate cloud conditions
     cloud_conditions = [
         np.where(price_above, 1, np.where(price_below, -1, 0)),
-        np.where(span_A_above & price_above, 1, np.where(
-            ~span_A_above & price_below, -1, 0)),
-        np.where(conversion_above & price_above, 1, np.where(
-            ~conversion_above & price_below, -1, 0))
+        np.where(span_A_above, 1, np.where(span_A_below, -1, 0)),
+        np.where(conversion_above, 1, np.where(conversion_below, -1, 0))
     ]
 
     # Combine conditions

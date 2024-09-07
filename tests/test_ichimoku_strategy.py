@@ -3,7 +3,8 @@ from strategy.strategy_ichimoku import (
     calculate_baseline, 
     calculate_leading_span_A, 
     calculate_leading_span_B,
-    calculate_lagging_span
+    calculate_lagging_span,
+    calculate_cloud
 )
 import pandas as pd
 from pathlib import Path
@@ -38,3 +39,7 @@ class IchimokuTest(TestCase):
     def test_calculate_lagging_span(self):
         self.stock_data['lagging_span'] = calculate_lagging_span(self.stock_data)
         self.assertTrue('lagging_span' in self.stock_data.columns)
+
+    def test_calculate_cloud(self):
+        self.stock_data['cloud'] = calculate_cloud(self.stock_data)
+        self.assertTrue('cloud' in self.stock_data.columns)
