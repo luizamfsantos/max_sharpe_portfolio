@@ -105,12 +105,12 @@ def calculate_lagging_span(
     of the Ichimoku strategy.
     It is the close price plotted k periods in the past.
     """
-    if 'close' not in data.columns:
+    if 'Close' not in data.columns:
         raise ValueError("Data must contain 'close' column")
     if lagging_periods is None:
         lagging_periods = 30
     lagging_periods = -1 * abs(lagging_periods)
-    return data['close'].shift(lagging_periods)
+    return data['Close'].shift(lagging_periods)
 
 
 def calculate_cloud(

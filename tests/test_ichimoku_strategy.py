@@ -2,7 +2,8 @@ from strategy.strategy_ichimoku import (
     calculate_conversion_line, 
     calculate_baseline, 
     calculate_leading_span_A, 
-    calculate_leading_span_B
+    calculate_leading_span_B,
+    calculate_lagging_span
 )
 import pandas as pd
 from pathlib import Path
@@ -33,3 +34,7 @@ class IchimokuTest(TestCase):
     def test_calculate_leading_span_B(self):
         self.stock_data['leading_span_B'] = calculate_leading_span_B(self.stock_data)
         self.assertTrue('leading_span_B' in self.stock_data.columns)
+
+    def test_calculate_lagging_span(self):
+        self.stock_data['lagging_span'] = calculate_lagging_span(self.stock_data)
+        self.assertTrue('lagging_span' in self.stock_data.columns)
