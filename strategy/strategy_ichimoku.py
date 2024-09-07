@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 from simulator.strategy_interface import StrategyInterface
-from strategy.initial_weights import get_uniform_noneg
 
 
 def calculate_conversion_line(
@@ -24,9 +23,9 @@ def calculate_conversion_line(
     """
     if rolling_periods is None:
         rolling_periods = 9
-    if ['high', 'low'] not in data.columns:
-        raise ValueError("Data must contain 'high' and 'low' columns")
-    return (data['high'].rolling(rolling_periods).max() + data['low'].rolling(rolling_periods).min()) / 2
+    if ['High', 'Low'] not in data.columns:
+        raise ValueError("Data must contain 'High' and 'Low' columns")
+    return (data['High'].rolling(rolling_periods).max() + data['Low'].rolling(rolling_periods).min()) / 2
 
 
 def calculate_baseline(
@@ -92,9 +91,9 @@ def calculate_leading_span_B(
         rolling_periods = 26
     if future_periods is None:
         future_periods = 30
-    if ['high', 'low'] not in data.columns:
-        raise ValueError("Data must contain 'high' and 'low' columns")
-    return ((data['high'].rolling(rolling_periods).max() + data['low'].rolling(rolling_periods).min()) / 2).shift(future_periods)
+    if ['High', 'Low'] not in data.columns:
+        raise ValueError("Data must contain 'High' and 'Low' columns")
+    return ((data['High'].rolling(rolling_periods).max() + data['Low'].rolling(rolling_periods).min()) / 2).shift(future_periods)
 
 
 def calculate_lagging_span(
@@ -170,86 +169,105 @@ class IchimokuStrategy(StrategyInterface):
         self.market = None
         self.current_weights = None
 
-    def _set_market_condition(self, data: pd.DataFrame, index: int):
+    def _set_market_condition(
+        self,
+        data: pd.DataFrame,
+        index: pd.Index
+    ) -> None:
         if self.market is not None:
-            if self.market.index == index:
+            if self.market.index == index.max():
                 return  # already set
         self.market = MarketCondition(data, index)
 
-    def _buy_stocks(data: pd.DataFrame, index: int) -> list[str]:
+    def _buy_stocks(self):
         """ 
         When the close price is above the cloud,
         leading Span A (senkou_span_A) is above 
         the leading span B (senkou_span_B), and
         conversion line (tenkan_sen) moves above
         the base line (kijun_sen), we buy stocks.
-        Returns:
-            list[str]: List of stocks to buy.
         """
-        _set_market_condition(data, index)
-        return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
+        stocks_to_buy = [
+            ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
+        if self.current_weights is None:
+            self.current_weights = pd.DataFrame({
+                'ticker': stocks_to_buy,
+                'weights': 1/len(stocks_to_buy),
+            })
+        else:
+            available_portfolio = 1 - self.current_weights['weights'].sum()
+            if available_portfolio and stocks_to_buy:
+                added_weights_per_stock = available_portfolio / \
+                    len(stocks_to_buy)
+                # Update weights for existing stocks and add new ones
+                for ticker in stocks_to_buy:
+                    if ticker in self.current_weights['ticker'].values:
+                        self.current_weights.loc[self.current_weights['ticker']
+                                                 == ticker, 'weights'] += added_weights_per_stock
+                    else:
+                        new_stock = pd.DataFrame(
+                            {'ticker': [ticker], 'weights': [added_weights_per_stock]})
+                        self.current_weights = pd.concat(
+                            [self.current_weights, new_stock], ignore_index=True)
 
-    def _sell_stocks(data: pd.DataFrame, index: int) -> list[str]:
+    def _sell_stocks(self):
         """
         When the close price is below the cloud,
         leading Span A (senkou_span_A) is below 
         the leading span B (senkou_span_B), and
         conversion line (tenkan_sen) moves below
         the base line (kijun_sen), we sell stocks.
-        Returns:
-            list[str]: List of stocks to sell.
         """
-        _set_market_condition(data, index)
-        return [ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == 1]
+        if self.current_weights is None:
+            return
+        stocks_to_sell = [
+            ticker for ticker, cloud_signal in self.market.cloud.items() if cloud_signal == -1]
+        if sum(self.current_weights['ticker'].isin(stocks_to_sell)):
+            self.current_weights.loc[self.current_weights['ticker'].isin(
+                stocks_to_sell), 'weights'] = 0
 
-    def calculate_next_weights(self, data: dict[str, pd.DataFrame], t: str) -> pd.DataFrame:
+    def calculate_next_weights(
+        self,
+        data: dict[str, pd.DataFrame],
+        t: int
+    ) -> pd.DataFrame:
         """
         Implement the Ichimoku strategy.
-        data (dict): Data dictionary containing 'sp', 'prices' and 'fed_rate' DataFrames.
-        t (int): Current time index. E.g. 2020-01-01
+        data (dict): Data dictionary containing 'sp', 
+            'prices' and 'fed_rate' DataFrames.
+        t (int): Current time index.
 
         """
         stocks_df = data['stocks']
+        index_considered = stocks_df.index[:t]  # returns list of dates up to t
         complete_prices_df = data.get('prices_complete')
         if not complete_prices_df:
-            raise ValueError("Data must contain open, high, low, close columns in order to calculate Ichimoku Cloud")
-        stocks_buy = _buy_stocks(
-            complete_prices_df, t)
-        stocks_sell = _sell_stocks(
-            complete_prices_df, t)
-
-        # TODO: get previous weights, if ticker is in stocks_sell, set weight to 0
-        # if ticker is in stocks_buy, set weight to 1/len(stocks_buy)
-        # if ticker is in neither, keep the previous weight
-        # if no previous weight, set weight to 0
-        # normalize the weights to sum to 1
-
-        # TODO: balance the portfolio
-        # Example:
-        # opt_weights = pd.DataFrame({
-        #     'date': [data['stocks'].index[t]] * len(result.x),
-        #     'ticker': returns_sel.columns,
-        #     'weights': result.x,
-        # })
-
-        # return opt_weights
+            raise ValueError("Data must contain open, high, low, "
+                             "close columns in order to calculate Ichimoku Cloud")
+        self._set_market_condition(complete_prices_df, index_considered)
+        self._sell_stocks()
+        self._buy_stocks()
+        opt_weights = self.current_weights.copy()
+        opt_weights['date'] = self.market.index
+        return opt_weights
 
 
 class MarketCondition():
 
-    def __init__(self, data: pd.DataFrame, index: str):
+    def __init__(self, data: pd.DataFrame, index: pd.Index):
         # only look at the data up to the current index
-        self.data = data.iloc[index-52:index, :]
-        self.index = index
+        self.data = data[data['Date'].isin(pd.to_datetime(index))].sort_values(
+            'Date').reset_index(drop=True)
+        self.index = index.max()
         self.stock_list = self._get_stocks()
         self.cloud = {stock: self._calculate_stock_cloud_condition(
             stock) for stock in self.stock_list}
 
     def _get_stocks(self) -> list[str]:
-        return [col for col in self.data.columns if col not in ['Date']]
+        return data['Symbol'].unique().tolist()
 
     def _get_stock_data(self, stock: str) -> pd.DataFrame:
-        return self.data[stock]
+        return self.data[self.data['Symbol'] == stock].copy().reset_index(drop=True)
 
     def _calculate_stock_cloud_condition(self, stock: str):
         stock_data = self._get_stock_data(stock)
