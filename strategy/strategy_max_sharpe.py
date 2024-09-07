@@ -6,6 +6,7 @@ from pypfopt import expected_returns
 
 from simulator.strategy_interface import StrategyInterface
 
+
 class MaxSharpeStrategy(StrategyInterface):
     def calculate_next_weights(
         self,
@@ -22,6 +23,7 @@ class MaxSharpeStrategy(StrategyInterface):
         ef = EfficientFrontier(mu, S)
         raw_weights = ef.max_sharpe()
         cleaned_weights = ef.clean_weights()
-        opt_weights = pd.DataFrame.from_dict(cleaned_weights, orient='index').reset_index()
+        opt_weights = pd.DataFrame.from_dict(cleaned_weights, orient='index', columns=[
+                                             'weights']).reset_index(names='ticker')
         opt_weights['date'] = prices_df.index[-1]
         return opt_weights
