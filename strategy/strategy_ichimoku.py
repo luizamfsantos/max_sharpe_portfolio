@@ -194,21 +194,21 @@ class IchimokuStrategy(StrategyInterface):
                 'ticker': stocks_to_buy,
                 'weights': 1/len(stocks_to_buy),
             })
+            return
         else:
             available_portfolio = 1 - self.current_weights['weights'].sum()
-            if available_portfolio and stocks_to_buy:
-                added_weights_per_stock = available_portfolio / \
-                    len(stocks_to_buy)
-                # Update weights for existing stocks and add new ones
-                for ticker in stocks_to_buy:
-                    if ticker in self.current_weights['ticker'].values:
-                        self.current_weights.loc[self.current_weights['ticker']
-                                                 == ticker, 'weights'] += added_weights_per_stock
-                    else:
-                        new_stock = pd.DataFrame(
-                            {'ticker': [ticker], 'weights': [added_weights_per_stock]})
-                        self.current_weights = pd.concat(
-                            [self.current_weights, new_stock], ignore_index=True)
+        if available_portfolio and stocks_to_buy:
+            added_weights_per_stock = available_portfolio / len(stocks_to_buy)
+            # Update weights for existing stocks and add new ones
+            for ticker in stocks_to_buy:
+                if ticker in self.current_weights['ticker'].values:
+                    self.current_weights.loc[self.current_weights['ticker']
+                                             == ticker, 'weights'] += added_weights_per_stock
+                else:
+                    new_stock = pd.DataFrame(
+                        {'ticker': [ticker], 'weights': [added_weights_per_stock]})
+                    self.current_weights = pd.concat(
+                        [self.current_weights, new_stock], ignore_index=True)
 
     def _sell_stocks(self):
         """
