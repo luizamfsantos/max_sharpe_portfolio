@@ -23,7 +23,7 @@ def calculate_conversion_line(
     """
     if rolling_periods is None:
         rolling_periods = 9
-    if ['High', 'Low'] not in data.columns:
+    if 'High' not in data.columns or 'Low' not in data.columns:
         raise ValueError("Data must contain 'High' and 'Low' columns")
     return (data['High'].rolling(rolling_periods).max() + data['Low'].rolling(rolling_periods).min()) / 2
 
@@ -91,7 +91,7 @@ def calculate_leading_span_B(
         rolling_periods = 26
     if future_periods is None:
         future_periods = 30
-    if ['High', 'Low'] not in data.columns:
+    if 'High' not in data.columns or 'Low' not in data.columns:
         raise ValueError("Data must contain 'High' and 'Low' columns")
     return ((data['High'].rolling(rolling_periods).max() + data['Low'].rolling(rolling_periods).min()) / 2).shift(future_periods)
 
