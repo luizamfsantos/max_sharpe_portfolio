@@ -1,5 +1,6 @@
 # Load Data
 import pandas as pd
+from pathlib import Path
 
 
 def load_data():
@@ -8,16 +9,16 @@ def load_data():
     """
 
     # path
-    path = "data_market/datasets/"
+    basepath = Path(__file__).parent / "datasets/"
 
     # load fed rate
-    fed_rate_df = pd.read_parquet(path + "US/fed_rate.parquet")
+    fed_rate_df = pd.read_parquet(basepath / "US/fed_rate.parquet")
 
     # load sp500_components
-    sp_df = pd.read_parquet(path + "US/sp_comp.parquet")
+    sp_df = pd.read_parquet(basepath / "US/sp_comp.parquet")
 
     # load prices_sp
-    melt_prices_df = pd.read_parquet(path + "US/prices_sp.parquet")
+    melt_prices_df = pd.read_parquet(basepath / "US/prices_sp.parquet")
     prices_df = melt_prices_df.pivot_table(
         index="Date", columns="Ticker", values="value")
 
