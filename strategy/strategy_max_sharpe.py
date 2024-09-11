@@ -14,7 +14,7 @@ class MaxSharpeStrategy(StrategyInterface):
         t: int
     ) -> pd.DataFrame:
         # Filter only data until time t
-        prices_df = data['stocks'].sort_values('Data')
+        prices_df = data['stocks'].sort_values(by='index',axis=0)
         prices_df = prices_df.iloc[:t]
         # Calculate expected returns and sample covariance
         mu = expected_returns.mean_historical_return(prices_df)
